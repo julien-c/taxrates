@@ -116,9 +116,65 @@ class SeedCommand extends Command
 	}
 }
 
+class EbookRate
+{
+	public function __construct($rate) {
+		$this->rate = (object) $rate;
+		
+		// List compiled from Publisher document.
+		// @see also http://www.taxrates.com/blog/2013/08/27/taxing-the-ebook/
+		if (in_array($this->rate->state, ['AK', 'AR', 'CA', 'DE', 'FL', 'GA', 'IA', 'IL', 'KS', 'MA', 'MD', 'MI', 'MO', 'MT', 'ND', 'NH', 'NV', 'NY', 'OK', 'OR', 'PA', 'RI', 'SC', 'VA', 'WV'])) {
+			$this->rate->taxable = false;
+		}
+		else {
+			if (in_array($this->rate->state, ['AL', 'ID', 'LA'])) {
+				// Alabama, Idaho, Lousiana
+				// NOOP (Publisher Nexus)
+			}
+			$this->rate->taxable = true;
+		}
+	}
+	
+	public function export() {
+		return $this->rate;
+	}
+}
+
+class GetCommand extends Command
+{
+	protected function configure()
+	{
+		$this
+			->setName('get')
+			->setDescription('Get tax object from zipcode, adapted for ebooks.')
+			->addArgument(
+				'zipcode',
+				InputArgument::REQUIRED
+			)
+			->addOption(
+                'database',
+                'd',
+                InputOption::VALUE_REQUIRED,
+                'Where is the data stored',
+                'tax'
+            )
+		;
+	}
+	
+	protected function execute(InputInterface $input, OutputInterface $output)
+	{
+		$collection = (new MongoClient)->{$input->getOption('database')}->taxRates;
+		$taxRate = $collection->findOne(array('zipcode' => $input->getArgument('zipcode')));
+		$ebookRate = new EbookRate($taxRate);
+		$output->writeln('<fg=green>'.json_encode($ebookRate->export()).'</fg=green>');
+	}
+}
+
+
 $application = new Application();
 $application->add(new CrawlCommand);
 $application->add(new SeedCommand);
+$application->add(new GetCommand);
 $application->run();
 
 
