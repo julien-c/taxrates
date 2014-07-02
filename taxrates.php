@@ -152,12 +152,12 @@ class GetCommand extends Command
 				InputArgument::REQUIRED
 			)
 			->addOption(
-                'database',
-                'd',
-                InputOption::VALUE_REQUIRED,
-                'Where is the data stored',
-                'tax'
-            )
+				'database',
+				'd',
+				InputOption::VALUE_REQUIRED,
+				'Where is the data stored',
+				'tax'
+			)
 		;
 	}
 	
