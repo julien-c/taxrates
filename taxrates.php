@@ -32,6 +32,27 @@ class CrawlCommand extends Command
 	}
 }
 
+class DirtyRow implements ArrayAccess, Countable
+{
+	private $container = array();
+	public function __construct($string) {
+		$this->container = explode(',', $string);
+	}
+	
+	public function offsetSet($offset, $value) {}
+	public function offsetExists($offset) {}
+	public function offsetUnset($offset) {}
+	public function offsetGet($offset) {
+		return ($offset < 0 ) ? $this->container[count($this->container) + $offset] : $this->container[$offset];
+	}
+	public function count() {
+		return count($this->container);
+	}
+	public function slice($offset, $length) {
+		return array_slice($this->container, $offset, $length);
+	}
+}
+
 class SeedCommand extends Command
 {
 	protected function configure()
@@ -54,20 +75,35 @@ class SeedCommand extends Command
 		foreach (array_diff(scandir('csv'), ['.', '..']) as $filename) {
 			$documents = [];
 			$csv = array_slice(explode("\n", file_get_contents('csv/'.$filename)), 1); // Skip the first heading line.
-			foreach ($csv as $row) {
-				if ($row !== "") {
-					$r = explode(',', $row);
-					$documents[] = array(
+			foreach ($csv as $line) {
+				if ($line !== "") {
+					$r = new DirtyRow($line);
+					
+					if (count($r) == 9) {
+						$taxRegionName = $r[2];
+					} else {
+						$taxRegionName = implode(',', $r->slice(2, count($r) - 8));
+					}
+					
+					$document = array(
 						'state'         => $r[0],
 						'zipcode'       => $r[1],
-						'taxRegionName' => $r[2],
-						'taxRegionCode' => $r[3],
-						'combinedRate'  => floatval($r[4]),
-						'stateRate'     => floatval($r[5]),
-						'countyRate'    => floatval($r[6]),
-						'cityRate'      => floatval($r[7]),
-						'specialRate'   => floatval($r[8]),
+						'taxRegionName' => $taxRegionName,
+						'taxRegionCode' => $r[-6],
+						'combinedRate'  => floatval($r[-5]),
+						'stateRate'     => floatval($r[-4]),
+						'countyRate'    => floatval($r[-3]),
+						'cityRate'      => floatval($r[-2]),
+						'specialRate'   => floatval($r[-1]),
 					);
+					
+					// Sanity check:
+					if (strlen($document['taxRegionCode']) !== 4 || !ctype_upper($document['taxRegionCode'])) {
+						$output->writeln('<error>Wrong data formatting</error>');
+						$output->writeln($line);
+					} else {
+						$documents[] = $document;
+					}
 				}
 			}
 			$res = $collection->batchInsert($documents);
