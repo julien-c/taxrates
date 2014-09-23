@@ -75,9 +75,7 @@ class SeedCommand extends Command
 		$colArchive = (new MongoClient)->{$input->getArgument('database')}->{'taxrates-archive'};
 		
 		// Archive all items:
-		foreach ($collection->find() as $item) {
-			$colArchive->insert($item);
-		}
+		$colArchive->batchInsert(iterator_to_array($collection->find()));
 		$collection->remove();
 		
 		$importDate = date('Ymd');
