@@ -1,5 +1,8 @@
 {
     "require": {
         "symfony/console": "*"
+    },
+    "autoload": {
+        "classmap": ["TaxRate.php", "EbookRate.php"]
     }
 }
