@@ -71,8 +71,16 @@ class SeedCommand extends Command
 	
 	protected function execute(InputInterface $input, OutputInterface $output)
 	{
-		$collection = (new MongoClient)->{$input->getArgument('database')}->taxRates;
-		$collection->drop();
+		$collection = (new MongoClient)->{$input->getArgument('database')}->taxrates;
+		$colArchive = (new MongoClient)->{$input->getArgument('database')}->{'taxrates-archive'};
+		
+		// Archive all items:
+		foreach ($collection->find() as $item) {
+			$colArchive->insert($item);
+		}
+		$collection->remove();
+		
+		$importDate = date('Ymd');
 		
 		foreach (array_diff(scandir('csv'), ['.', '..']) as $filename) {
 			$documents = [];
@@ -97,6 +105,7 @@ class SeedCommand extends Command
 						'countyRate'    => floatval($r[-3]),
 						'cityRate'      => floatval($r[-2]),
 						'specialRate'   => floatval($r[-1]),
+						'importDate'    => $importDate,
 					);
 					
 					// Sanity check:
