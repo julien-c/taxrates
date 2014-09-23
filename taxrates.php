@@ -71,8 +71,8 @@ class SeedCommand extends Command
 	
 	protected function execute(InputInterface $input, OutputInterface $output)
 	{
-		$collection = (new MongoClient)->{$input->getArgument('database')}->taxrates;
-		$colArchive = (new MongoClient)->{$input->getArgument('database')}->{'taxrates-archive'};
+		$collection = (new MongoClient)->{$input->getArgument('database')}->taxRates;
+		$colArchive = (new MongoClient)->{$input->getArgument('database')}->{'taxRates-archive'};
 		
 		// Archive all items:
 		try {
