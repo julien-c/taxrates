@@ -148,6 +148,27 @@ class SeedCommand extends Command
 }
 
 
+class ArchiveCommand extends Command
+{
+	protected function configure()
+	{
+		$this
+			->setName('archive')
+			->setDescription('Archive as gzipped JSON')
+		;
+	}
+	
+	protected function execute(InputInterface $input, OutputInterface $output)
+	{
+		$documents = Parser::parse();
+		$json = json_encode($documents, JSON_PRETTY_PRINT);
+		$gz = gzopen('archive.json.gz','w9');
+		gzwrite($gz, $json);
+		gzclose($gz);
+	}
+}
+
+
 class GetCommand extends Command
 {
 	protected function configure()
@@ -186,6 +207,7 @@ class GetCommand extends Command
 $application = new Application();
 $application->add(new CrawlCommand);
 $application->add(new SeedCommand);
+$application->add(new ArchiveCommand);
 $application->add(new GetCommand);
 $application->run();
 
