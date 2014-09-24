@@ -55,6 +55,56 @@ class DirtyRow implements ArrayAccess, Countable
 	}
 }
 
+class Parser
+{
+	/**
+	 * Parse CSV files and return array of documents
+	 * 
+	 * @return array of documents
+	 */
+	public static function parse()
+	{
+		$importDate = date('Ymd');
+		$documents = [];
+		
+		foreach (array_diff(scandir('csv'), ['.', '..']) as $filename) {
+			$csv = array_slice(explode("\n", file_get_contents('csv/'.$filename)), 1); // Skip the first heading line.
+			foreach ($csv as $line) {
+				if ($line !== "") {
+					$r = new DirtyRow($line);
+					
+					if (count($r) == 9) {
+						$taxRegionName = $r[2];
+					} else {
+						$taxRegionName = implode(',', $r->slice(2, count($r) - 8));
+					}
+					
+					$document = array(
+						'state'         => $r[0],
+						'zipcode'       => $r[1],
+						'taxRegionName' => $taxRegionName,
+						'taxRegionCode' => $r[-6],
+						'combinedRate'  => floatval($r[-5]),
+						'stateRate'     => floatval($r[-4]),
+						'countyRate'    => floatval($r[-3]),
+						'cityRate'      => floatval($r[-2]),
+						'specialRate'   => floatval($r[-1]),
+						'importDate'    => $importDate,
+					);
+					
+					// Sanity check:
+					if (strlen($document['taxRegionCode']) !== 4 || !ctype_upper($document['taxRegionCode'])) {
+						throw new UnexpectedValueException('Wrong data formatting: '.$line);
+					}
+					$documents[] = $document;
+				}
+			}
+		}
+		return $documents;
+	}
+}
+
+
 class SeedCommand extends Command
 {
 	protected function configure()
@@ -86,46 +136,10 @@ class SeedCommand extends Command
 		}
 		$collection->remove();
 		
-		$importDate = date('Ymd');
-		
-		foreach (array_diff(scandir('csv'), ['.', '..']) as $filename) {
-			$documents = [];
-			$csv = array_slice(explode("\n", file_get_contents('csv/'.$filename)), 1); // Skip the first heading line.
-			foreach ($csv as $line) {
-				if ($line !== "") {
-					$r = new DirtyRow($line);
-					
-					if (count($r) == 9) {
-						$taxRegionName = $r[2];
-					} else {
-						$taxRegionName = implode(',', $r->slice(2, count($r) - 8));
-					}
-					
-					$document = array(
-						'state'         => $r[0],
-						'zipcode'       => $r[1],
-						'taxRegionName' => $taxRegionName,
-						'taxRegionCode' => $r[-6],
-						'combinedRate'  => floatval($r[-5]),
-						'stateRate'     => floatval($r[-4]),
-						'countyRate'    => floatval($r[-3]),
-						'cityRate'      => floatval($r[-2]),
-						'specialRate'   => floatval($r[-1]),
-						'importDate'    => $importDate,
-					);
-					
-					// Sanity check:
-					if (strlen($document['taxRegionCode']) !== 4 || !ctype_upper($document['taxRegionCode'])) {
-						$output->writeln('<error>Wrong data formatting</error>');
-						$output->writeln($line);
-					} else {
-						$documents[] = $document;
-					}
-				}
-			}
-			$res = $collection->batchInsert($documents);
-			$output->writeln('Inserted '.count($documents).' documents '.'<fg=green>'.json_encode($res).'</fg=green>');
-		}
+		$documents = Parser::parse();
+		$output->writeln('Parsed '.count($documents).' documents');
+		$res = $collection->batchInsert($documents);
+		$output->writeln('Inserted '.count($documents).' documents '.'<fg=green>'.json_encode($res).'</fg=green>');
 		
 		// Create index:
 		$collection->createIndex(array('zipcode' => 1), array('unique' => true));
