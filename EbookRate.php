@@ -88,7 +88,7 @@ class EbookRate
 		}
 		else if ($specs->country == 'CA') {
 			if (!isset($specs->state))  throw new InvalidArgumentException('state required for CA');
-			if (!isset(static::$canada[$specs->state])) throw new InvalidArgumentException('Invalid state for CA');
+			if (!isset(static::$canada[$specs->state]))  throw new InvalidArgumentException('Invalid state for CA');
 			
 			$this->taxable = true;
 			$this->rate    = static::$canada[$specs->state][0];
@@ -101,7 +101,7 @@ class EbookRate
 			if (!$localRate)  throw new InvalidArgumentException('Invalid zipcode for US');
 			
 			// Extend EbookRate object:
-			foreach ($localRate as $k => $v) {
+			foreach ($localRate->attributes as $k => $v) {
 				$this->$k = $v;
 			}
 			

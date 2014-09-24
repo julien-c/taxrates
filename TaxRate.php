@@ -1,6 +1,6 @@
 <?php
 
-// Shim for Mongovel Model
+// Shim for Mongovel\Model
 
 class TaxRate
 {
@@ -9,6 +9,9 @@ class TaxRate
 	
 	public static function findOne(array $query)
 	{
-		return static::$collection->findOne($query);
+		$taxRate = static::$collection->findOne($query);
+		return is_null($taxRate)
+			? null 
+			: (object) ['attributes' => $taxRate];
 	}
 }
