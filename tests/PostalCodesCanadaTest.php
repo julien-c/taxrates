@@ -12,7 +12,7 @@ class PostalCodesCanadaTest extends PHPUnit_Framework_TestCase
 			'NL' => 'A0A 1A1',
 			'NS' => 'B4V 2K4',
 			'NT' => 'X1A 2P7',
-			'NU' =>	'X0E 1B0',
+			'NU' =>	'X0B 1B0',
 			'ON' =>	'L6Y 2N4',
 			'PE' => 'C0A 1A3',
 			'QC' =>	'H4N 1J7',

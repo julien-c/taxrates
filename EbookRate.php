@@ -63,7 +63,43 @@ class EbookRate
 	 */
 	public static function map($postalCode)
 	{
-		return 'QC';
+		switch ($postalCode[0]) {
+			case 'A':
+				return 'NL';
+			case 'B':
+				return 'NS';
+			case 'C':
+				return 'PE';
+			case 'E':
+				return 'NB';
+			case 'G':
+			case 'H':
+			case 'J':
+				return 'QC';
+			case 'K':
+			case 'L':
+			case 'M':
+			case 'N':
+			case 'P':
+				return 'ON';
+			case 'R':
+				return 'MB';
+			case 'S':
+				return 'SK';
+			case 'T':
+				return 'AB';
+			case 'V':
+				return 'BC';
+			case 'X':
+				if (in_array(substr($postalCode, 0, 3), ['X0A', 'X0B', 'X0C'])) {
+					return 'NU';
+				}
+				return 'NT';
+			case 'Y':
+				return 'YT';
+			default:
+				throw new InvalidArgumentException('Invalid postal code');
+		}
 	}
 	
 	
