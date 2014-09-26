@@ -56,6 +56,16 @@ class EbookRate
 		'YT' =>	[0.05, 'GST'],
 	];
 	
+	/**
+	 * Map a Canadian postal code to a state
+	 * @param  $postalCode
+	 * @return $state
+	 */
+	public static function map($postalCode)
+	{
+		return 'QC';
+	}
+	
 	
 	
 	public $taxable;   // Boolean
