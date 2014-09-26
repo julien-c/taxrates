@@ -24,4 +24,12 @@ class PostalCodesCanadaTest extends PHPUnit_Framework_TestCase
 			$this->assertEquals($state, EbookRate::map($code));
 		}
 	}
+	
+	/**
+	 * @expectedException InvalidArgumentException
+	 */
+	public function testCanadaException()
+	{
+		$state = EbookRate::map('D3D 1A1');
+	}
 }
