@@ -98,7 +98,7 @@ class EbookRate
 			case 'Y':
 				return 'YT';
 			default:
-				throw new InvalidArgumentException('Invalid postal code');
+				throw new InvalidArgumentException('Invalid postal code for CA');
 		}
 	}
 	
@@ -111,8 +111,7 @@ class EbookRate
 	/**
 	 * $specs is an array that can contain:
 	 * `country`      required
-	 * `state`        optional (required in CA)
-	 * `zipcode`      optional (required in US)
+	 * `zipcode`      optional (required in US and CA)
 	 * `tag`          optional
 	 */
 	public function __construct($specs)
@@ -129,16 +128,16 @@ class EbookRate
 			}
 			else {
 				$this->taxable = true;
-				$this->rate    = static::$europe[$specs->country];
+				$this->rate    = static::$europe[$specs->country] / 100;
 			}
 		}
 		else if ($specs->country == 'CA') {
-			if (!isset($specs->state))  throw new InvalidArgumentException('state required for CA');
-			if (!isset(static::$canada[$specs->state]))  throw new InvalidArgumentException('Invalid state for CA');
+			if (!isset($specs->zipcode))  throw new InvalidArgumentException('zipcode required for CA');
+			$state = static::map($specs->zipcode);
 			
 			$this->taxable = true;
-			$this->rate    = static::$canada[$specs->state][0];
-			$this->type    = static::$canada[$specs->state][1];
+			$this->rate    = static::$canada[$state][0];
+			$this->type    = static::$canada[$state][1];
 		}
 		else if ($specs->country == 'US') {
 			if (!isset($specs->zipcode))  throw new InvalidArgumentException('zipcode required for US');
@@ -161,7 +160,7 @@ class EbookRate
 			}
 			else {
 				// Special cases for publishers
-				if ($specs->tag == 'macmillan' && in_array($this->rate->state, ['AL', 'ID', 'LA'])) {
+				if (isset($specs->tag)  && ($specs->tag == 'macmillan') && in_array($this->state, ['AL', 'ID', 'LA'])) {
 					// Alabama, Idaho, Lousiana
 					// NOOP (Publisher Nexus)
 					$this->taxable = true;
