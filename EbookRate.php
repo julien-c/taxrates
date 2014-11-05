@@ -5,6 +5,7 @@ class EbookRate
 	// Sources:
 	// http://ec.europa.eu/taxation_customs/resources/documents/taxation/vat/how_vat_works/rates/vat_rates_en.pdf
 	// http://www.taxrates.com/blog/2013/08/27/taxing-the-ebook/
+	// http://www.taxrates.com/blog/2013/03/05/european-union-how-to-tax-an-e-book/
 	// Publisher documents
 	
 	static $europe = [
